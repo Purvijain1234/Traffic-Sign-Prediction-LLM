@@ -340,7 +340,49 @@ def explain_sign(req: ExplainRequest):
 
     # If the user asked a specific follow-up question
     if req.question and req.question.strip():
-        q = req.question.strip().lower()
+        user_q = req.question.strip()
+        gemini_api_key = os.getenv("GEMINI_API_KEY")
+
+        # 1. Try Gemini LLM if GEMINI_API_KEY is configured in environment
+        if gemini_api_key:
+            try:
+                import google.generativeai as genai
+                genai.configure(api_key=gemini_api_key)
+                llm = genai.GenerativeModel(
+                    model_name="gemini-1.5-flash",
+                    system_instruction=(
+                        "You are Traffic Sign Saarthi AI, an expert Indian Road Safety & Statutory AI Assistant. "
+                        "You provide authoritative, clear, and practical driver directives aligned strictly with the Indian Roads Congress "
+                        "(IRC:67-2022) Code of Practice and the Motor Vehicles (Amendment) Act 2019. "
+                        "Always cite relevant statutory sections (e.g. Section 119 for obeying road signs, Section 184 for dangerous driving) "
+                        "and official penalties where appropriate. Keep responses concise, direct, and helpful for drivers."
+                    )
+                )
+                prompt = (
+                    f"Traffic Sign: {sign_title} ({metadata['category']} - {metadata['shape']})\n"
+                    f"IRC Code: {metadata.get('irc_code', 'IRC:67-2022')}\n"
+                    f"Standard Meaning: {metadata['meaning']}\n"
+                    f"Mandatory Action: {metadata['driver_action']}\n"
+                    f"Safety Hazard Context: {metadata['safety_context']}\n"
+                    f"Statutory Penalties & Law: {metadata['legal_reference']}\n\n"
+                    f"User Question: {user_q}\n\n"
+                    f"Answer the user's question clearly based on the above statutory context:"
+                )
+                gemini_res = llm.generate_content(prompt)
+                if gemini_res and gemini_res.text:
+                    return {
+                        "sign_name": metadata["class_name"],
+                        "title": sign_title,
+                        "question": user_q,
+                        "answer": gemini_res.text.strip(),
+                        "metadata": metadata,
+                        "provider": "google-gemini"
+                    }
+            except Exception as e:
+                logger.warning("Gemini API call failed, falling back to statutory rule engine: %s", str(e))
+
+        # 2. Fallback: Deterministic verified statutory rule engine
+        q = user_q.lower()
 
         if any(w in q for w in ["fine", "penalty", "law", "rule", "act", "section", "challan"]):
             answer = (
