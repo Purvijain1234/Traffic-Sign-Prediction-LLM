@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-page: #FAFAF7;
+    --bg-surface: #FFFFFF;
+    --border-color: #E2E8F0;
+    --text-primary: #101B3F;
+    --text-secondary: #5B6B8E;
+    --accent: #3867FF;
+    --accent-soft: #EAF2FF;
+  }
+
+  .dark {
+    --bg-page: #0C1329;
+    --bg-surface: #141E3E;
+    --border-color: #253568;
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --accent: #5D84FF;
+    --accent-soft: #18254F;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Linear-style minimalist selection */
+::selection {
+  background-color: #3867FF33;
+  color: inherit;
+}
+
+/* Subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+/* Scan line animation for camera/upload */
+@keyframes scanline {
+  0% {
+    top: 0%;
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 98%;
+    opacity: 0.85;
+  }
+}
+
+.animate-scan {
+  animation: scanline 2.2s ease-in-out infinite alternate;
+}
