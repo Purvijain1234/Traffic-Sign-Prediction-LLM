@@ -346,19 +346,16 @@ def explain_sign(req: ExplainRequest):
         # 1. Try Gemini LLM if GEMINI_API_KEY is configured in environment
         if gemini_api_key:
             try:
-                import google.generativeai as genai
-                genai.configure(api_key=gemini_api_key)
-                llm = genai.GenerativeModel(
-                    model_name="gemini-1.5-flash",
-                    system_instruction=(
-                        "You are Traffic Sign Saarthi AI, an expert Indian Road Safety & Statutory AI Assistant. "
-                        "You provide authoritative, clear, and practical driver directives aligned strictly with the Indian Roads Congress "
-                        "(IRC:67-2022) Code of Practice and the Motor Vehicles (Amendment) Act 2019. "
-                        "Always cite relevant statutory sections (e.g. Section 119 for obeying road signs, Section 184 for dangerous driving) "
-                        "and official penalties where appropriate. Keep responses concise, direct, and helpful for drivers."
-                    )
+                import requests
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_api_key}"
+                system_text = (
+                    "You are Traffic Sign Saarthi AI, an expert Indian Road Safety & Statutory AI Assistant. "
+                    "You provide authoritative, clear, and practical driver directives aligned strictly with the Indian Roads Congress "
+                    "(IRC:67-2022) Code of Practice and the Motor Vehicles (Amendment) Act 2019. "
+                    "Always cite relevant statutory sections (e.g. Section 119 for obeying road signs, Section 184 for dangerous driving) "
+                    "and official penalties where appropriate. Keep responses concise, direct, and helpful for drivers."
                 )
-                prompt = (
+                prompt_text = (
                     f"Traffic Sign: {sign_title} ({metadata['category']} - {metadata['shape']})\n"
                     f"IRC Code: {metadata.get('irc_code', 'IRC:67-2022')}\n"
                     f"Standard Meaning: {metadata['meaning']}\n"
@@ -368,16 +365,31 @@ def explain_sign(req: ExplainRequest):
                     f"User Question: {user_q}\n\n"
                     f"Answer the user's question clearly based on the above statutory context:"
                 )
-                gemini_res = llm.generate_content(prompt)
-                if gemini_res and gemini_res.text:
-                    return {
-                        "sign_name": metadata["class_name"],
-                        "title": sign_title,
-                        "question": user_q,
-                        "answer": gemini_res.text.strip(),
-                        "metadata": metadata,
-                        "provider": "google-gemini"
+                payload = {
+                    "contents": [{
+                        "parts": [{"text": prompt_text}]
+                    }],
+                    "systemInstruction": {
+                        "parts": [{"text": system_text}]
                     }
+                }
+                gemini_res = requests.post(url, json=payload, timeout=12)
+                if gemini_res.status_code == 200:
+                    data = gemini_res.json()
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts and "text" in parts[0]:
+                            return {
+                                "sign_name": metadata["class_name"],
+                                "title": sign_title,
+                                "question": user_q,
+                                "answer": parts[0]["text"].strip(),
+                                "metadata": metadata,
+                                "provider": "google-gemini"
+                            }
+                else:
+                    logger.warning("Gemini REST API error (status %d): %s", gemini_res.status_code, gemini_res.text)
             except Exception as e:
                 logger.warning("Gemini API call failed, falling back to statutory rule engine: %s", str(e))
 
