@@ -59,7 +59,7 @@ AVAILABLE_MODELS: Dict[str, Dict[str, Any]] = {
         "weighted_f1": "87.33%",
         "architecture": "ResNet18 (Residual Neural Network)",
         "description": "Deep residual architecture with skip connections; achieved highest overall test accuracy (87.58%) and macro F1 (72.25%).",
-        "model_path": BASE_DIR / "models" / "resnet18" / "resnet18_best.keras",
+        "model_path": BASE_DIR / "models" / "resnet18" / "resnet18_best.tflite",
         "class_path": BASE_DIR / "models" / "resnet18" / "class_names_resnet18.json",
         "preprocessing": "raw",  # raw RGB (0-255)
         "is_default": True
@@ -205,7 +205,13 @@ def preprocess_image_for_model(pil_img: Image.Image, preprocessing_mode: str) ->
     return np.expand_dims(img_array, axis=0)
 
 @app.on_event("startup")
-def startup_event():
+# def startup_event():
+#    """Preload ResNet18 (default best accuracy model) at application launch."""
+#    try:
+#        logger.info("Initializing default ResNet18 model on server startup...")
+#        get_or_load_model("resnet18")
+#    except Exception as e:
+#        logger.warning("Startup model preloading failed: %s", str(e))
     """Preload ResNet18 (default best accuracy model) at application launch."""
     try:
         logger.info("Initializing default ResNet18 model on server startup...")
