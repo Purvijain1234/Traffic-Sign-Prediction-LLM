@@ -1,0 +1,15 @@
+dataset/
+notebooks/
+*.ipynb_checkpoints
+models/**/*.h5
+models/**/*.ckpt
+models/**/*.pt
+models/**/*.pth
+models/**/*.pb
+models/**/*.tflite
+models/**/*.onnx
+models/**/*.zip
+node_modules/
+*.pyc
+__pycache__/
+.env
