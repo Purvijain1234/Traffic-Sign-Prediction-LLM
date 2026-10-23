@@ -11,7 +11,7 @@ PROJECT_DIR = Path(r"C:\Programming\Projects\Traffic Sign")
 
 MODEL_PATH = (
     PROJECT_DIR / "models" / "resnet18"
-    / "resnet18_best.keras"
+    / "resnet18_best.tflite"
 )
 
 CLASS_PATH = (
@@ -36,7 +36,7 @@ if not TEST_DIR.exists():
 
 # Load model and class names
 print("\nLoading ResNet18 model...")
-model = tf.keras.models.load_model(MODEL_PATH)
+model = tf.lite.Interpreter(model_path=str(MODEL_PATH))
 
 with open(CLASS_PATH, "r", encoding="utf-8") as f:
     CLASS_NAMES = json.load(f)
@@ -69,8 +69,27 @@ img_array = tf.keras.utils.img_to_array(img)
 img_batch = np.expand_dims(img_array, axis=0)
 
 # Predict
-probabilities = model.predict(img_batch, verbose=0)[0]
+# Predict using TensorFlow Lite
+model.allocate_tensors()
 
+input_details = model.get_input_details()
+output_details = model.get_output_details()
+
+# Match the input dtype required by the TFLite model
+input_dtype = input_details[0]["dtype"]
+img_batch = img_batch.astype(input_dtype)
+
+model.set_tensor(input_details[0]["index"], img_batch)
+model.invoke()
+
+# Get predictions and remove batch dimension: (1, 85) -> (85,)
+probabilities = model.get_tensor(
+    output_details[0]["index"]
+)[0]
+
+print("Output shape:", probabilities.shape)
+
+# Predicted class
 predicted_idx = int(np.argmax(probabilities))
 predicted_class = CLASS_NAMES[predicted_idx]
 confidence = float(probabilities[predicted_idx]) * 100
@@ -97,7 +116,6 @@ print("Correct prediction:", actual_class == predicted_class)
 
 # Top 3 predictions
 print("\nTop 3 predictions:")
-
 top_indices = np.argsort(probabilities)[-3:][::-1]
 
 for idx in top_indices:

@@ -179,7 +179,13 @@ def get_or_load_model(model_key: str = "resnet18"):
     if actual_key not in LOADED_MODELS:
         try:
             logger.info("Loading model checkpoint for %s from %s...", actual_key, model_path)
-            LOADED_MODELS[actual_key] = tf.keras.models.load_model(str(model_path))
+            if model_path.suffix == ".tflite":
+                # Load TFLite model via Interpreter
+                interpreter = tf.lite.Interpreter(model_path=str(model_path))
+                interpreter.allocate_tensors()
+                LOADED_MODELS[actual_key] = interpreter
+            else:
+                LOADED_MODELS[actual_key] = tf.keras.models.load_model(str(model_path))
             logger.info("Model '%s' loaded successfully into memory!", actual_key)
         except Exception as e:
             logger.error("Failed to load model %s: %s", actual_key, str(e))
@@ -205,13 +211,7 @@ def preprocess_image_for_model(pil_img: Image.Image, preprocessing_mode: str) ->
     return np.expand_dims(img_array, axis=0)
 
 @app.on_event("startup")
-# def startup_event():
-#    """Preload ResNet18 (default best accuracy model) at application launch."""
-#    try:
-#        logger.info("Initializing default ResNet18 model on server startup...")
-#        get_or_load_model("resnet18")
-#    except Exception as e:
-#        logger.warning("Startup model preloading failed: %s", str(e))
+def startup_event():
     """Preload ResNet18 (default best accuracy model) at application launch."""
     try:
         logger.info("Initializing default ResNet18 model on server startup...")
@@ -290,7 +290,15 @@ async def predict_traffic_sign(
         img_batch = preprocess_image_for_model(pil_img, cfg["preprocessing"])
 
         # Execute model prediction
-        probabilities = model_instance.predict(img_batch, verbose=0)[0]
+        if isinstance(model_instance, tf.lite.Interpreter):
+            input_details = model_instance.get_input_details()
+            output_details = model_instance.get_output_details()
+            # Set input tensor
+            model_instance.set_tensor(input_details[0]['index'], img_batch.astype(input_details[0]['dtype']))
+            model_instance.invoke()
+            probabilities = model_instance.get_tensor(output_details[0]['index'])[0]
+        else:
+            probabilities = model_instance.predict(img_batch, verbose=0)[0]
         predicted_idx = int(np.argmax(probabilities))
         predicted_class = class_names[predicted_idx] if predicted_idx < len(class_names) else f"CLASS_{predicted_idx}"
         confidence = float(probabilities[predicted_idx]) * 100
