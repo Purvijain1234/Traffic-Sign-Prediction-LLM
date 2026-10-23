@@ -24,6 +24,9 @@ import {
 import { PredictionResponse, SampleSign, ModelOption } from '../types';
 import { Cpu, ChevronDown } from 'lucide-react';
 
+// Render backend URL (can be overridden with VITE_BACKEND_URL)
+const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || 'https://traffic-sign-backend-49u0.onrender.com').replace(/\/$/, '');
+
 const AVAILABLE_MODELS_DATA: ModelOption[] = [
   {
     id: 'resnet18',
@@ -121,7 +124,7 @@ export const DetectionStudio: React.FC = () => {
 
   // Check backend health & fetch samples
   useEffect(() => {
-    fetch('/api/health')
+    fetch(`${BACKEND_URL}/api/health`)
       .then((res) => res.json())
       .then((data) => {
         setBackendHealthy(data.status === 'healthy');
@@ -130,7 +133,7 @@ export const DetectionStudio: React.FC = () => {
         setBackendHealthy(false);
       });
 
-    fetch('/api/models')
+    fetch(`${BACKEND_URL}/api/models`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -143,7 +146,7 @@ export const DetectionStudio: React.FC = () => {
       })
       .catch(() => {});
 
-    fetch('/api/samples')
+    fetch(`${BACKEND_URL}/api/samples`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data)) setSamples(data);
@@ -172,7 +175,7 @@ export const DetectionStudio: React.FC = () => {
   const loadSampleSign = async (className: string) => {
     setErrorMsg(null);
     try {
-      const response = await fetch(`/api/sample-image/${className}`);
+      const response = await fetch(`${BACKEND_URL}/api/sample-image/${encodeURIComponent(className)}`);
       if (!response.ok) throw new Error('Sample image not found on server.');
       const blob = await response.blob();
       const file = new File([blob], `${className}.jpg`, { type: 'image/jpeg' });
@@ -264,7 +267,7 @@ export const DetectionStudio: React.FC = () => {
     formData.append('model', targetModel);
 
     try {
-      const response = await fetch(`/api/predict?model=${encodeURIComponent(targetModel)}`, {
+      const response = await fetch(`${BACKEND_URL}/api/predict?model=${encodeURIComponent(targetModel)}`, {
         method: 'POST',
         body: formData,
       });
