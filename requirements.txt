@@ -5,4 +5,4 @@ pydantic>=2.0.0
 numpy>=1.24.0,<2.0.0
 pillow>=9.5.0
 requests>=2.28.0
-tflite-runtime   # no version constraint – pip will pick the newest compatible wheel
+tflite-runtime==2.14.0
