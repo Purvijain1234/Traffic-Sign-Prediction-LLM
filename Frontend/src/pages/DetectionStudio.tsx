@@ -13,19 +13,22 @@ import {
   ShieldAlert,
   HelpCircle,
   Sparkles,
-  Info
+  Info,
 } from 'lucide-react';
 import {
   EmptyUploadIllustration,
   CameraPermissionIllustration,
   NoDetectionIllustration,
-  ErrorIllustration
+  ErrorIllustration,
 } from '../components/Illustrations';
 import { PredictionResponse, SampleSign, ModelOption } from '../types';
 import { Cpu, ChevronDown } from 'lucide-react';
 
-// Render backend URL (can be overridden with VITE_BACKEND_URL)
-const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || 'https://traffic-sign-backend-49u0.onrender.com').replace(/\/$/, '');
+// --------------------------------------------------------------
+// 1️⃣ Backend URL (read from Vite env var)
+// --------------------------------------------------------------
+const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL ||
+  'https://traffic-sign-backend-49u0.onrender.com').replace(/\/$/, '');
 
 const AVAILABLE_MODELS_DATA: ModelOption[] = [
   {
@@ -37,7 +40,8 @@ const AVAILABLE_MODELS_DATA: ModelOption[] = [
     macro_f1: '72.25%',
     weighted_f1: '87.33%',
     architecture: 'ResNet18 (Residual Neural Network)',
-    description: 'Deep residual skip connections. Highest accuracy & macro F1 across 85 Indian traffic classes.',
+    description:
+      'Deep residual skip connections. Highest accuracy & macro F1 across 85 Indian traffic classes.',
     is_default: true,
   },
   {
@@ -49,7 +53,8 @@ const AVAILABLE_MODELS_DATA: ModelOption[] = [
     macro_f1: '69.34%',
     weighted_f1: '87.17%',
     architecture: 'MobileNetV2 (Inverted Residuals)',
-    description: 'Lightweight architecture with depthwise separable convolutions; low latency with high accuracy.',
+    description:
+      'Lightweight architecture with depthwise separable convolutions; low latency with high accuracy.',
     is_default: false,
   },
   {
@@ -61,7 +66,8 @@ const AVAILABLE_MODELS_DATA: ModelOption[] = [
     macro_f1: '63.48%',
     weighted_f1: '82.31%',
     architecture: 'EfficientNet-B0 (MBConv Blocks)',
-    description: 'Compound scaling method balancing network depth, width, and resolution.',
+    description:
+      'Compound scaling method balancing network depth, width, and resolution.',
     is_default: false,
   },
   {
@@ -73,7 +79,8 @@ const AVAILABLE_MODELS_DATA: ModelOption[] = [
     macro_f1: '52.68%',
     weighted_f1: '77.27%',
     architecture: 'Custom CNN Baseline (4-Block ConvNet)',
-    description: '4-block convolutional network baseline trained from scratch without transfer learning.',
+    description:
+      '4-block convolutional network baseline trained from scratch without transfer learning.',
     is_default: false,
   },
 ];
@@ -122,7 +129,9 @@ export const DetectionStudio: React.FC = () => {
   // Samples for quick testing
   const [samples, setSamples] = useState<SampleSign[]>([]);
 
-  // Check backend health & fetch samples
+  // --------------------------------------------------------------
+  // 2️⃣ Check backend health & fetch initial data
+  // --------------------------------------------------------------
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/health`)
       .then((res) => res.json())
@@ -138,7 +147,9 @@ export const DetectionStudio: React.FC = () => {
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           setModelOptions(data);
-          const defaultMod = data.find((m: ModelOption) => m.is_default) || data.find((m: ModelOption) => m.id === 'resnet18');
+          const defaultMod =
+            data.find((m: ModelOption) => m.is_default) ||
+            data.find((m: ModelOption) => m.id === 'resnet18');
           if (defaultMod) {
             setSelectedModel(defaultMod.id);
           }
@@ -175,21 +186,23 @@ export const DetectionStudio: React.FC = () => {
   const loadSampleSign = async (className: string) => {
     setErrorMsg(null);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/sample-image/${encodeURIComponent(className)}`);
+      const response = await fetch(
+        `${BACKEND_URL}/api/sample-image/${encodeURIComponent(className)}`
+      );
       if (!response.ok) throw new Error('Sample image not found on server.');
       const blob = await response.blob();
       const file = new File([blob], `${className}.jpg`, { type: 'image/jpeg' });
-      
+
       if (previewUrl && previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(previewUrl);
       }
-      
+
       const newUrl = URL.createObjectURL(blob);
       setSelectedFile(file);
       setPreviewUrl(newUrl);
       setMode('upload');
-      
-      // Auto run detection for sample
+
+      // Auto‑run detection for the sample
       runDetection(file, selectedModel);
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to load sample image.');
@@ -249,7 +262,9 @@ export const DetectionStudio: React.FC = () => {
     modelOptions[0] ||
     AVAILABLE_MODELS_DATA[0];
 
-  // Run Inference API
+  // --------------------------------------------------------------
+  // 3️⃣ Run Inference API
+  // --------------------------------------------------------------
   const runDetection = async (fileToInfer?: File, modelIdToUse?: string) => {
     const targetFile = fileToInfer || selectedFile;
     const targetModel = modelIdToUse || selectedModel;
@@ -267,10 +282,13 @@ export const DetectionStudio: React.FC = () => {
     formData.append('model', targetModel);
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/predict?model=${encodeURIComponent(targetModel)}`, {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await fetch(
+        `${BACKEND_URL}/api/predict?model=${encodeURIComponent(targetModel)}`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -300,7 +318,9 @@ export const DetectionStudio: React.FC = () => {
     }
   };
 
-  // Camera Management
+  // --------------------------------------------------------------
+  // 4️⃣ Camera Management
+  // --------------------------------------------------------------
   const startCamera = async () => {
     setCameraError(null);
     setErrorMsg(null);
@@ -378,6 +398,9 @@ export const DetectionStudio: React.FC = () => {
     }, 'image/jpeg', 0.92);
   }, [isCameraActive, previewUrl, selectedModel]);
 
+  // --------------------------------------------------------------
+  // Render
+  // --------------------------------------------------------------
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
       {/* Page Header */}
@@ -395,7 +418,7 @@ export const DetectionStudio: React.FC = () => {
           </p>
         </div>
 
-        {/* Model Badge & Backend Status */}
+        {/* Model badge & backend status */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-linear-border-light dark:border-linear-border-dark bg-linear-surface-light dark:bg-linear-surface-dark text-linear-text-light dark:text-linear-text-dark text-xs font-semibold">
             <Cpu size={13} className="text-linear-accent" />
@@ -420,14 +443,11 @@ export const DetectionStudio: React.FC = () => {
         </div>
       </div>
 
-
-      {/* Main Two-Column Layout */}
+      {/* Main layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        {/* Left Viewport (7 Cols) */}
+        {/* Left pane – viewport & controls */}
         <div className="lg:col-span-7 flex flex-col gap-4">
-          
-          {/* Segmented Mode Control */}
+          {/* Mode selector */}
           <div className="flex items-center justify-between p-1 bg-linear-surface-light dark:bg-linear-surface-dark border border-linear-border-light dark:border-linear-border-dark rounded-md">
             <div className="grid grid-cols-2 gap-1 w-full max-w-xs">
               <button
@@ -461,7 +481,7 @@ export const DetectionStudio: React.FC = () => {
               </button>
             </div>
 
-            {/* Mode Specific Quick Actions */}
+            {/* Quick actions for upload mode */}
             {mode === 'upload' && previewUrl && (
               <div className="flex items-center gap-1 pr-1">
                 <button
@@ -476,10 +496,9 @@ export const DetectionStudio: React.FC = () => {
             )}
           </div>
 
-          {/* Primary Viewport Area */}
+          {/* Primary viewport */}
           <div className="relative w-full aspect-[4/3] sm:aspect-[16/11] rounded-lg border border-linear-border-light dark:border-linear-border-dark bg-linear-surface-light/50 dark:bg-linear-surface-dark/50 overflow-hidden flex flex-col items-center justify-center">
-            
-            {/* Mode 1: Image Upload Viewport */}
+            {/* Upload view */}
             {mode === 'upload' && (
               <>
                 {previewUrl ? (
@@ -489,8 +508,6 @@ export const DetectionStudio: React.FC = () => {
                       alt="Uploaded sign preview"
                       className="max-h-full max-w-full object-contain rounded shadow-subtle"
                     />
-
-                    {/* Scanning Laser / Reticle during processing */}
                     {isProcessing && (
                       <div className="absolute inset-0 pointer-events-none flex flex-col justify-start">
                         <div className="w-full h-0.5 bg-linear-accent dark:bg-linear-accent-dark shadow-[0_0_12px_#6E56CF] animate-scan"></div>
@@ -534,7 +551,7 @@ export const DetectionStudio: React.FC = () => {
               </>
             )}
 
-            {/* Mode 2: Live Camera Viewport */}
+            {/* Camera view */}
             {mode === 'camera' && (
               <div className="relative w-full h-full bg-black flex items-center justify-center">
                 <video
@@ -543,8 +560,7 @@ export const DetectionStudio: React.FC = () => {
                   muted
                   className={`w-full h-full object-cover ${!isCameraActive ? 'hidden' : ''}`}
                 />
-
-                {/* Camera Inactive / Permission Guide */}
+                {/* Permission / inactive UI */}
                 {!isCameraActive && (
                   <div className="p-6 text-center max-w-sm">
                     {cameraError ? (
@@ -584,7 +600,7 @@ export const DetectionStudio: React.FC = () => {
                   </div>
                 )}
 
-                {/* Overlaid Scanning Reticle when camera is active */}
+                {/* Reticle overlay when camera is active */}
                 {isCameraActive && (
                   <>
                     <div className="absolute inset-8 sm:inset-12 border border-white/40 rounded-lg pointer-events-none flex flex-col justify-between p-2">
@@ -614,7 +630,7 @@ export const DetectionStudio: React.FC = () => {
             )}
           </div>
 
-          {/* Action Bar Below Viewport */}
+          {/* Action bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border border-linear-border-light dark:border-linear-border-dark bg-linear-bg-light dark:bg-linear-surface-dark">
             <div className="text-xs text-linear-text-muted dark:text-linear-text-muted-dark">
               {mode === 'upload' ? (
@@ -682,7 +698,7 @@ export const DetectionStudio: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Preset Samples Picker */}
+          {/* Sample picker */}
           {samples.length > 0 && (
             <div className="p-3.5 rounded-lg border border-linear-border-light dark:border-linear-border-dark bg-linear-surface-light/40 dark:bg-linear-surface-dark/40">
               <div className="flex items-center justify-between mb-2">
@@ -720,10 +736,9 @@ export const DetectionStudio: React.FC = () => {
           )}
         </div>
 
-        {/* Right Structured Detection Results Panel (5 Cols) */}
+        {/* Right pane – results */}
         <div className="lg:col-span-5">
           <div className="border border-linear-border-light dark:border-linear-border-dark rounded-lg bg-linear-bg-light dark:bg-linear-surface-dark p-5 shadow-subtle min-h-[460px] flex flex-col justify-between">
-            
             <div>
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-linear-border-light dark:border-linear-border-dark mb-4">
@@ -731,11 +746,12 @@ export const DetectionStudio: React.FC = () => {
                   Detection Results
                 </h2>
                 <span className="text-[11px] font-mono text-linear-text-muted dark:text-linear-text-muted-dark font-medium">
-                  {prediction?.model_info?.name || currentModel.name} ({prediction?.model_info?.test_accuracy || currentModel.accuracy})
+                  {prediction?.model_info?.name || currentModel.name} (
+                  {prediction?.model_info?.test_accuracy || currentModel.accuracy})
                 </span>
               </div>
 
-              {/* Error State */}
+              {/* Error banner */}
               {errorMsg && (
                 <div className="p-3.5 rounded-md bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-300 mb-4 flex items-start gap-2">
                   <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
@@ -746,20 +762,21 @@ export const DetectionStudio: React.FC = () => {
                 </div>
               )}
 
-              {/* Results View: When Prediction is Ready */}
+              {/* Result content */}
               {prediction ? (
                 <div className="space-y-4">
-                  
-                  {/* Top Predicted Class Banner */}
+                  {/* Top prediction banner */}
                   <div className="p-4 rounded-md border border-linear-border-light dark:border-linear-border-dark bg-linear-surface-light dark:bg-[#1f1f23]">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded tracking-wider ${
-                        prediction.metadata.category_type === 'mandatory'
-                          ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'
-                          : prediction.metadata.category_type === 'cautionary'
-                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                          : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
-                      }`}>
+                      <span
+                        className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded tracking-wider ${
+                          prediction.metadata.category_type === 'mandatory'
+                            ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'
+                            : prediction.metadata.category_type === 'cautionary'
+                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                            : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                        }`}
+                      >
                         {prediction.metadata.category}
                       </span>
                       <span className="text-xs font-bold font-mono text-linear-accent dark:text-linear-accent-dark">
@@ -774,7 +791,7 @@ export const DetectionStudio: React.FC = () => {
                       Class ID: {prediction.predicted_class}
                     </p>
 
-                    {/* Confidence Progress Bar */}
+                    {/* Confidence bar */}
                     <div className="w-full bg-zinc-200 dark:bg-zinc-700 h-2 rounded-full mt-3 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
@@ -789,7 +806,7 @@ export const DetectionStudio: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Top Alternate Hypotheses */}
+                  {/* Top alternate hypotheses */}
                   {prediction.top_predictions && prediction.top_predictions.length > 1 && (
                     <div>
                       <h4 className="text-xs font-semibold text-linear-text-muted dark:text-linear-text-muted-dark mb-2">
@@ -813,20 +830,24 @@ export const DetectionStudio: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Verified Statutory Specifications */}
+                  {/* Statutory info */}
                   <div className="p-3 rounded-md border border-linear-border-light dark:border-linear-border-dark bg-linear-surface-light/40 dark:bg-linear-surface-dark/40 text-xs space-y-1.5">
                     <div className="flex justify-between">
                       <span className="text-linear-text-muted dark:text-linear-text-muted-dark">Standard:</span>
-                      <span className="font-medium text-linear-text-light dark:text-linear-text-dark">{prediction.metadata.irc_code}</span>
+                      <span className="font-medium text-linear-text-light dark:text-linear-text-dark">
+                        {prediction.metadata.irc_code}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-linear-text-muted dark:text-linear-text-muted-dark">Geometry:</span>
-                      <span className="font-medium text-linear-text-light dark:text-linear-text-dark">{prediction.metadata.shape}</span>
+                      <span className="font-medium text-linear-text-light dark:text-linear-text-dark">
+                        {prediction.metadata.shape}
+                      </span>
                     </div>
                   </div>
                 </div>
               ) : isProcessing ? (
-                /* Scanning Loading State */
+                // Loading spinner
                 <div className="py-16 flex flex-col items-center justify-center text-center">
                   <div className="w-12 h-12 rounded-full border-2 border-linear-accent border-t-transparent animate-spin mb-4"></div>
                   <h3 className="text-sm font-semibold text-linear-text-light dark:text-linear-text-dark">
@@ -837,7 +858,7 @@ export const DetectionStudio: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                /* Empty Results State */
+                // Empty state
                 <div className="py-14 flex flex-col items-center justify-center text-center">
                   <EmptyUploadIllustration className="w-16 h-16 text-linear-text-muted dark:text-linear-text-muted-dark mb-3 opacity-60" />
                   <h3 className="text-sm font-semibold text-linear-text-light dark:text-linear-text-dark">
@@ -850,7 +871,7 @@ export const DetectionStudio: React.FC = () => {
               )}
             </div>
 
-            {/* Bottom Primary Action: Understand This Sign */}
+            {/* Bottom button – navigate to explainer */}
             <div className="pt-4 border-t border-linear-border-light dark:border-linear-border-dark mt-4">
               <button
                 onClick={() => {
@@ -872,7 +893,6 @@ export const DetectionStudio: React.FC = () => {
                 Transfers detected sign to AI Explainer for statutory meaning & driver directives.
               </p>
             </div>
-
           </div>
         </div>
       </div>
