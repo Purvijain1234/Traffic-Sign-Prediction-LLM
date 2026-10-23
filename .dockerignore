@@ -6,7 +6,7 @@ models/**/*.ckpt
 models/**/*.pt
 models/**/*.pth
 models/**/*.pb
-models/**/*.tflite
+
 models/**/*.onnx
 models/**/*.zip
 node_modules/
