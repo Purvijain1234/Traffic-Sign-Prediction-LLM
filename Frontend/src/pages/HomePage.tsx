@@ -49,6 +49,11 @@ import { SaarthiLogo } from '../components/SaarthiLogo';
 import { AboutModal } from '../components/AboutModal';
 import { PredictionResponse, SampleSign, ExplanationResponse, ModelOption } from '../types';
 
+const BACKEND_URL = (
+  import.meta.env.VITE_BACKEND_URL ||
+  'https://traffic-sign-backend-49u0.onrender.com'
+).replace(/\/$/, '');
+
 export const AVAILABLE_MODELS_DATA: ModelOption[] = [
   {
     id: 'resnet18',
@@ -167,12 +172,12 @@ export const HomePage: React.FC = () => {
 
   // Initial Data Fetching
   useEffect(() => {
-    fetch('/api/health')
+    fetch(`${BACKEND_URL}/api/health`)
       .then((res) => res.json())
       .then((data) => setBackendHealthy(data.status === 'healthy'))
       .catch(() => setBackendHealthy(false));
 
-    fetch('/api/models')
+    fetch(`${BACKEND_URL}/api/models`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -186,14 +191,14 @@ export const HomePage: React.FC = () => {
       })
       .catch(() => {});
 
-    fetch('/api/samples')
+    fetch(`${BACKEND_URL}/api/samples`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data)) setSamples(data);
       })
       .catch(() => {});
 
-    fetch('/api/classes')
+    fetch(`${BACKEND_URL}/api/classes`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data)) setAllClasses(data);
@@ -211,7 +216,7 @@ export const HomePage: React.FC = () => {
     setExplanationError(null);
     setChatMessages([]);
 
-    fetch('/api/explain', {
+    fetch(`${BACKEND_URL}/api/explain`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sign_name: signName }),
@@ -263,7 +268,7 @@ export const HomePage: React.FC = () => {
     formData.append('model', targetModel);
 
     try {
-      const response = await fetch(`/api/predict?model=${encodeURIComponent(targetModel)}`, {
+      const response = await fetch(`${BACKEND_URL}/api/predict?model=${encodeURIComponent(targetModel)}`, {
         method: 'POST',
         body: formData,
       });
@@ -305,7 +310,7 @@ export const HomePage: React.FC = () => {
   const loadSampleSign = async (className: string) => {
     setErrorMsg(null);
     try {
-      const response = await fetch(`/api/sample-image/${className}`);
+      const response = await fetch(`${BACKEND_URL}/api/sample-image/${className}`);
       if (!response.ok) throw new Error('Sample image not found on server.');
       const blob = await response.blob();
       const file = new File([blob], `${className}.jpg`, { type: 'image/jpeg' });

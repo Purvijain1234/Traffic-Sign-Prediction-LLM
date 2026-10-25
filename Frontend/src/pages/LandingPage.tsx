@@ -9,12 +9,17 @@ import {
 } from '../components/Illustrations';
 import { SampleSign } from '../types';
 
+const BACKEND_URL = (
+  import.meta.env.VITE_BACKEND_URL ||
+  'https://traffic-sign-backend-49u0.onrender.com'
+).replace(/\/$/, '');
+
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [samples, setSamples] = useState<SampleSign[]>([]);
 
   useEffect(() => {
-    fetch('/api/samples')
+    fetch(`${BACKEND_URL}/api/samples`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data)) {
@@ -24,14 +29,14 @@ export const LandingPage: React.FC = () => {
       .catch(() => {
         // Fallback static samples if backend is starting up
         setSamples([
-          { class_name: 'STOP', title: 'Stop', category: 'Mandatory / Regulatory', category_type: 'mandatory', image_url: '/api/sample-image/STOP' },
-          { class_name: 'GIVE_WAY', title: 'Give Way', category: 'Mandatory / Regulatory', category_type: 'mandatory', image_url: '/api/sample-image/GIVE_WAY' },
-          { class_name: 'SPEED_LIMIT_50', title: 'Speed Limit 50 km/h', category: 'Mandatory / Regulatory', category_type: 'mandatory', image_url: '/api/sample-image/SPEED_LIMIT_50' },
-          { class_name: 'PEDESTRIAN_CROSSING', title: 'Pedestrian Crossing', category: 'Cautionary / Warning', category_type: 'cautionary', image_url: '/api/sample-image/PEDESTRIAN_CROSSING' },
-          { class_name: 'SCHOOL_AHEAD', title: 'School Ahead', category: 'Cautionary / Warning', category_type: 'cautionary', image_url: '/api/sample-image/SCHOOL_AHEAD' },
-          { class_name: 'HORN_PROHIBITED', title: 'Horn Prohibited', category: 'Mandatory / Regulatory', category_type: 'mandatory', image_url: '/api/sample-image/HORN_PROHIBITED' },
-          { class_name: 'ROUNDABOUT', title: 'Roundabout Ahead', category: 'Cautionary / Warning', category_type: 'cautionary', image_url: '/api/sample-image/ROUNDABOUT' },
-          { class_name: 'COMPULSARY_KEEP_LEFT', title: 'Compulsory Keep Left', category: 'Mandatory / Regulatory', category_type: 'mandatory', image_url: '/api/sample-image/COMPULSARY_KEEP_LEFT' }
+          { class_name: 'STOP', title: 'Stop', category: 'Mandatory / Regulatory', category_type: 'mandatory', image_url: `${BACKEND_URL}/api/sample-image/STOP` },
+          { class_name: 'GIVE_WAY', title: 'Give Way', category: 'Mandatory / Regulatory', category_type: 'mandatory', image_url: `${BACKEND_URL}/api/sample-image/GIVE_WAY` },
+          { class_name: 'SPEED_LIMIT_50', title: 'Speed Limit 50 km/h', category: 'Mandatory / Regulatory', category_type: 'mandatory', image_url: `${BACKEND_URL}/api/sample-image/SPEED_LIMIT_50` },
+          { class_name: 'PEDESTRIAN_CROSSING', title: 'Pedestrian Crossing', category: 'Cautionary / Warning', category_type: 'cautionary', image_url: `${BACKEND_URL}/api/sample-image/PEDESTRIAN_CROSSING` },
+          { class_name: 'SCHOOL_AHEAD', title: 'School Ahead', category: 'Cautionary / Warning', category_type: 'cautionary', image_url: `${BACKEND_URL}/api/sample-image/SCHOOL_AHEAD` },
+          { class_name: 'HORN_PROHIBITED', title: 'Horn Prohibited', category: 'Mandatory / Regulatory', category_type: 'mandatory', image_url: `${BACKEND_URL}/api/sample-image/HORN_PROHIBITED` },
+          { class_name: 'ROUNDABOUT', title: 'Roundabout Ahead', category: 'Cautionary / Warning', category_type: 'cautionary', image_url: `${BACKEND_URL}/api/sample-image/ROUNDABOUT` },
+          { class_name: 'COMPULSARY_KEEP_LEFT', title: 'Compulsory Keep Left', category: 'Mandatory / Regulatory', category_type: 'mandatory', image_url: `${BACKEND_URL}/api/sample-image/COMPULSARY_KEEP_LEFT` }
         ]);
       });
   }, []);

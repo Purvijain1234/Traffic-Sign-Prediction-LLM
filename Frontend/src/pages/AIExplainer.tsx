@@ -18,6 +18,11 @@ import {
 } from 'lucide-react';
 import { SignMetadata, ExplanationResponse } from '../types';
 
+const BACKEND_URL = (
+  import.meta.env.VITE_BACKEND_URL ||
+  'https://traffic-sign-backend-49u0.onrender.com'
+).replace(/\/$/, '');
+
 export const AIExplainer: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -39,7 +44,7 @@ export const AIExplainer: React.FC = () => {
 
   // Fetch all classes for the selector
   useEffect(() => {
-    fetch('/api/classes')
+    fetch(`${BACKEND_URL}/api/classes`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data)) setAllClasses(data);
@@ -63,7 +68,7 @@ export const AIExplainer: React.FC = () => {
     setErrorMsg(null);
     setChatMessages([]);
 
-    fetch('/api/explain', {
+    fetch(`${BACKEND_URL}/api/explain`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sign_name: currentSign }),
@@ -100,7 +105,7 @@ export const AIExplainer: React.FC = () => {
     setIsAsking(true);
 
     try {
-      const response = await fetch('/api/explain', {
+      const response = await fetch(`${BACKEND_URL}/api/explain`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -202,7 +207,7 @@ export const AIExplainer: React.FC = () => {
             {/* Authentic Image Thumbnail */}
             <div className="w-full aspect-[4/3] rounded-md bg-linear-surface-light dark:bg-[#1a1a1e] border border-linear-border-light dark:border-linear-border-dark p-3 flex items-center justify-center mb-3">
               <img
-                src={`/api/sample-image/${currentSign}`}
+                src={`${BACKEND_URL}/api/sample-image/${currentSign}`}
                 alt={explanationData?.title || currentSign}
                 className="max-h-full max-w-full object-contain"
                 onError={(e) => {
