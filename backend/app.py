@@ -363,7 +363,7 @@ def explain_sign(req: ExplainRequest):
         if gemini_api_key:
             try:
                 import requests
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_api_key}"
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_api_key}"
                 system_text = (
                     "You are Traffic Sign Saarthi AI, an expert Indian Road Safety & Statutory AI Assistant. "
                     "You provide authoritative, clear, and practical driver directives aligned strictly with the Indian Roads Congress "
@@ -467,7 +467,7 @@ def explain_sign(req: ExplainRequest):
         }
     }
 
-@app.get("api/samples")
+@app.get("/api/samples")
 def list_sample_signs():
     """Return a curated list of authentic test signs present in the dataset."""
     sample_classes = [
