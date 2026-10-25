@@ -467,7 +467,7 @@ def explain_sign(req: ExplainRequest):
         }
     }
 
-@app.get("/api/samples")
+@app.get("api/samples")
 def list_sample_signs():
     """Return a curated list of authentic test signs present in the dataset."""
     sample_classes = [

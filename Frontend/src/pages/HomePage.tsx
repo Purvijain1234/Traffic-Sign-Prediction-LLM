@@ -1249,7 +1249,7 @@ export const HomePage: React.FC = () => {
                 {/* Sign Image Preview */}
                 <div className="w-full aspect-[4/3] rounded-xl bg-slate-100 dark:bg-slate-950 border border-linear-border-light dark:border-linear-border-dark p-3.5 flex items-center justify-center mb-3.5">
                   <img
-                    src={`/api/sample-image/${activeSignName}`}
+                    src={`${BACKEND_URL}/api/sample-image/${activeSignName}`}
                     alt={explanationData?.title || activeSignName}
                     className="max-h-full max-w-full object-contain"
                     onError={(e) => {
