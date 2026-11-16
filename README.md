@@ -263,7 +263,7 @@ The project uses the [Indian Traffic Signs Prediction — 85 Classes dataset](ht
 | Layer | Technology | Purpose |
 |---|---|---|
 | Language | Python | Model training and backend logic |
-| Deep Learning | PyTorch | Model implementation and inference |
+| Deep Learning | Tensorflow/Keras | Model implementation and inference |
 | Computer Vision | OpenCV | Image processing |
 | Architectures | CNN, MobileNetV2, ResNet18, EfficientNet-B0 | Model comparison |
 | Backend | FastAPI | API and inference service |
