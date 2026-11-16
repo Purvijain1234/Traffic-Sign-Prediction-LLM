@@ -16,7 +16,6 @@ __pycache__/
 dataset/
 datasets/
 data/
-notebooks/
 
 # Unused Model Architectures (Only ResNet18 is tracked)
 models/cnn/

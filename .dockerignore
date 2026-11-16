@@ -1,5 +1,4 @@
 dataset/
-notebooks/
 *.ipynb_checkpoints
 models/**/*.h5
 models/**/*.ckpt
